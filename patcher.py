@@ -69,7 +69,7 @@ patchxmlurl = 'http://updates.xensource.com/XenServer/updates.xml'
 # Where we can find auto-exclude files on the internet - filename expected is either:
 ## "XS${majver}${minver}${subver}_exclusions.py"   - ie. "XS621_excludes.py" for XenServer 6.2.1
 ## "XS${majver}${minver}_exclusions.py"            - ie. "XS62_excludes.py" for XenServer 6.2.1 (if the above doesn't exist) OR XenServer 6.2
-autourl = 'https://raw.githubusercontent.com/dalgibbard/citrix_xenserver_patcher/master/exclusions'
+autourl = 'https://raw.githubusercontent.com/krajster/citrix_xenserver_patcher/master/exclusions'
 # Where we can store some temporary data
 tmpfile = '/var/tmp/xml.tmp'
 ##########################
