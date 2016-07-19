@@ -26,7 +26,7 @@ Anyway; enough of the nasty stuff.
 * Run it!
 
 ```
-wget --no-check-certificate -O patcher.py https://raw.github.com/dalgibbard/citrix_xenserver_patcher/master/patcher.py
+wget --no-check-certificate -O patcher.py https://raw.githubusercontent.com/krajster/citrix_xenserver_patcher/master/patcher.py
 chmod a+x patcher.py
 
 # Standalone node:
