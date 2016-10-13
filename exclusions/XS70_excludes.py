@@ -1,1 +1,1 @@
-autoexclusions = [ ]
+autoexclusions = [ XS70E008 ]
