@@ -35,7 +35,7 @@ try:
     from urllib2 import urlopen
 except ImportError:
     # Python v3
-    from urllib.request import urlopen
+    from urllib.request import url
 ############################
 ### IMPORT MODULES END ###
 ############################
@@ -270,7 +270,7 @@ def download_patch(patch_url):
     print("")
     print("Downloading: " + str(file_name))
     try:
-        u = urlopen(url)
+        u = url(url)
     except Exception, err:
         print("...ERR: Failed to Download Patch!")
         print("Error: " + str(err))
@@ -464,7 +464,7 @@ def getAutoExcludeList(autourl):
     ### Start XML Grab + Parse
     try:
         # Get XML
-        autoexclude_data = urlopen(autourlfull)
+        autoexclude_data = url(autourlfull)
     except Exception, err:
         if not subver == "":
             print("Failed to locate Auto Exclusions file: XS" + xsver + "_excludes.py" )
@@ -472,7 +472,7 @@ def getAutoExcludeList(autourl):
             try:
                 autourlfull = autourl + "/XS" + majver + minver + "_excludes.py"
                 # Get XML
-                autoexclude_data = urlopen(autourlfull)
+                autoexclude_data = url(autourlfull)
             except Exception, err:
                 # Handle Errors
                 print("\nFailed to read Auto-Exclusion List from: " + autourlfull)
@@ -653,7 +653,7 @@ try:
     # Get XML
     if debug == True:
         print("Downloading patch list XML")
-    downloaded_data = urlopen(patchxmlurl)
+    downloaded_data = url(patchxmlurl)
 except Exception, err:
     # Handle Errors
     print("\nFailed to read Citrix Patch List from: " + patchxmlurl)
