@@ -9,6 +9,7 @@ version = "1.6.0"
 # Written by: Darren Gibbard
 # URL:        http://dgunix.com
 # Github:     http://github.com/dalgibbard/citrix_xenserver_patcher
+# Citrix authorization : https://github.com/bkci
 #
 #
 # Written for Python 2.4 which is present in current XenServer 6.1/6.2+ Builds, but also somewhat
