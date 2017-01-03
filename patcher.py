@@ -27,7 +27,7 @@ version = "1.5.2"
 ############################
 ### IMPORT MODULES START ###
 ############################
-import sys, re, subprocess, os, getopt, time, pprint, signal, base64, urllib2, cookielib, urllib
+import sys, re, subprocess, os, getopt, time, pprint, signal, base64, urllib2, cookielib, urllib, getpass
 from xml.dom import minidom
 from operator import itemgetter
 try:
@@ -272,28 +272,33 @@ def download_patch(patch_url):
     urllib2.install_opener(opener)
 
     url = patch_url
+    returnurl = "https://www.citrix.com/login/bridge?url=http%3A%2F%2Fsupport.citrix.com%2F"
+    errorurl = "https://www.citrix.com/login?url=http%3A%2F%2Fsupport.citrix.com%2F&err=y"
     file_name = url.split("/")[-1]
     authentication_url = "https://identity.citrix.com/Utility/STS/Sign-In"
-
+    
+    username = raw_input("Citrix Login: ")
+    password = getpass.getpass("Citrix password:")
+    
     payload = {
-      "returnURL": download,
-      "errorURL": error_url,
-      "persistent": "1",
-      "userName": "<user>",
-      "password": "<pass>"
-      }
-
+	"returnURL": returnurl,
+        "errorURL": errorurl,
+	"persistent": "1",
+        "userName": username,
+        "password": password
+        }
+        
     data = urllib.urlencode(payload)
 
     req = urllib2.Request(authentication_url, data)
-
+    
     print("")
     print("Downloading: " + str(file_name))
     try:
         u = urllib2.urlopen(req)
         contents = u.read()
         u = urllib2.urlopen(url)
-    except  Exception, err:
+    except Exception, err:
         print("...ERR: Failed to Download Patch!")
         print("Error: " + str(err))
         sys.exit(3)
