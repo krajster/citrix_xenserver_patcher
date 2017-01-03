@@ -293,7 +293,7 @@ def download_patch(patch_url):
         u = urllib2.urlopen(req)
         contents = u.read()
         u = urllib2.urlopen(url)
-    except Exception, err:
+    except  Exception, err:
         print("...ERR: Failed to Download Patch!")
         print("Error: " + str(err))
         sys.exit(3)
@@ -304,11 +304,11 @@ def download_patch(patch_url):
         print("Failed to open/write to " + file_name)
         sys.exit(2)
 
-   meta = u.info()
-   try:
+    meta = u.info()
+    try:
         file_size = int(meta.getheaders("Content-Length")[0])
         size_ok = True
-   except IndexError, err:
+    except IndexError, err:
         print("...WARN: Failed to get download size from: %s" % patch_url)
         print("         Will attempt to continue download, with unknown file size")
         time.sleep(4)
