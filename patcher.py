@@ -27,7 +27,7 @@ version = "1.5.2"
 ############################
 ### IMPORT MODULES START ###
 ############################
-import sys, re, subprocess, os, getopt, time, pprint, signal
+import sys, re, subprocess, os, getopt, time, pprint, signal, base64, urllib2, cookielib, urllib
 from xml.dom import minidom
 from operator import itemgetter
 try:
@@ -265,36 +265,57 @@ def which(program):
     return None
 
 def download_patch(patch_url):
+    cj = cookielib.CookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj)) 
+    opener.addheaders = [("User-agent", "XenTesting")]
+
+    urllib2.install_opener(opener)
+
     url = patch_url
-    file_name = url.split('/')[-1]
+    file_name = url.split("/")[-1]
+    authentication_url = "https://identity.citrix.com/Utility/STS/Sign-In"
+
+    payload = {
+      "returnURL": download,
+      "errorURL": error_url,
+      "persistent": "1",
+      "userName": "<user>",
+      "password": "<pass>"
+      }
+
+    data = urllib.urlencode(payload)
+
+    req = urllib2.Request(authentication_url, data)
+
     print("")
     print("Downloading: " + str(file_name))
     try:
-        u = url(url)
+        u = urllib2.urlopen(req)
+        contents = u.read()
+        u = urllib2.urlopen(url)
     except Exception, err:
         print("...ERR: Failed to Download Patch!")
         print("Error: " + str(err))
         sys.exit(3)
-        
+    
     try:
-        f = open(file_name, 'wb')
-    except IOError:
+        f = open(file_name, "wb")
+        except IOError:
         print("Failed to open/write to " + file_name)
         sys.exit(2)
 
-    meta = u.info()
-    try:
+	meta = u.info()
+   try:
         file_size = int(meta.getheaders("Content-Length")[0])
         size_ok = True
-    except IndexError, err:
+        except IndexError, err:
         print("...WARN: Failed to get download size from: %s" % patch_url)
         print("         Will attempt to continue download, with unknown file size")
         time.sleep(4)
 	###############
-        size_ok = False
+    	size_ok = False
 
-    # Check available disk space
-    s = os.statvfs('.')
+    s = os.statvfs(".")
     freebytes = s.f_bsize * s.f_bavail
     if size_ok == False:
         doublesize = 2048
@@ -309,7 +330,7 @@ def download_patch(patch_url):
         sys.exit(20)
 
     print "Download Size: %s Bytes" % (file_size)
-        
+    
     file_size_dl = 0
     block_sz = 8192
     while True:
