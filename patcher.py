@@ -297,6 +297,7 @@ def download_patch(patch_url):
         print("...ERR: Failed to Download Patch!")
         print("Error: " + str(err))
         sys.exit(3)
+    
     try:
         f = open(file_name, "wb")
     except IOError, err:
