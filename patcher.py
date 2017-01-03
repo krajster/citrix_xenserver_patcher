@@ -303,7 +303,7 @@ def download_patch(patch_url):
         print("Failed to open/write to " + file_name)
         sys.exit(2)
 
-	meta = u.info()
+   meta = u.info()
    try:
         file_size = int(meta.getheaders("Content-Length")[0])
         size_ok = True
