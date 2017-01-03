@@ -484,7 +484,7 @@ def getAutoExcludeList(autourl):
     ### Start XML Grab + Parse
     try:
         # Get XML
-        autoexclude_data = url(autourlfull)
+        autoexclude_data = urlopen(autourlfull)
     except Exception, err:
         if not subver == "":
             print("Failed to locate Auto Exclusions file: XS" + xsver + "_excludes.py" )
@@ -673,7 +673,7 @@ try:
     # Get XML
     if debug == True:
         print("Downloading patch list XML")
-    downloaded_data = url(patchxmlurl)
+    downloaded_data = urlopen(patchxmlurl)
 except Exception, err:
     # Handle Errors
     print("\nFailed to read Citrix Patch List from: " + patchxmlurl)
