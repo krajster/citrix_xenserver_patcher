@@ -276,6 +276,7 @@ def download_patch(patch_url):
     returnurl = "https://www.citrix.com/login/bridge?url=http%3A%2F%2Fsupport.citrix.com%2F"
     errorurl = "https://www.citrix.com/login?url=http%3A%2F%2Fsupport.citrix.com%2F&err=y"
     file_name = url.split("/")[-1]
+    file_name = re.match(r'^.*?\.zip', file_name).group(0)
     authentication_url = "https://identity.citrix.com/Utility/STS/Sign-In"
     
     username = raw_input("Citrix Login: ")
