@@ -307,9 +307,7 @@ def download_patch(patch_url):
     print("")
     print("Downloading: " + str(file_name))
     try:
-        u = urllib2.urlopen(req)
-        contents = u.read()
-        u = urllib2.urlopen(url)
+        u = urlopen(url)
     except Exception, err:
         print("...ERR: Failed to Download Patch!")
         print("Error: " + str(err))
