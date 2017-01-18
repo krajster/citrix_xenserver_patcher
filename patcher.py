@@ -287,7 +287,7 @@ def login():
     data = urllib.urlencode(payload)
     
     # Build our Request object (supplying 'data' makes it a POST)
-    req = urllib2.Request(citrix_authentication_url, data)
+    req = urllib2.Request(authentication_url, data)
     try:
         u = urllib2.urlopen(req)
 	contents = u.read()
