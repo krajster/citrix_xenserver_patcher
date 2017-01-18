@@ -100,6 +100,8 @@ autoExclude = True
 reboot = 0
 # Disable debug by default
 debug = False
+# Citrix login by deafult
+CitrixLogin = False
 # Clean out installed patches by default
 clean = True
 ######################################
