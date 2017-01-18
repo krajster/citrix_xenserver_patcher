@@ -265,7 +265,7 @@ def which(program):
 
     return None
 
-def login:
+def login():
     cj = cookielib.CookieJar()
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj)) 
     opener.addheaders = [("User-agent", "XenTesting")] 
@@ -285,7 +285,8 @@ def login:
         "password": password
         }
     data = urllib.urlencode(payload)
-     # Build our Request object (supplying 'data' makes it a POST)
+    
+    # Build our Request object (supplying 'data' makes it a POST)
     req = urllib2.Request(citrix_authentication_url, data)
     try:
         u = urllib2.urlopen(req)
