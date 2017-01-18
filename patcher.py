@@ -265,18 +265,13 @@ def which(program):
 
     return None
 
-def download_patch(patch_url):
+def login:
     cj = cookielib.CookieJar()
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj)) 
-    opener.addheaders = [("User-agent", "XenTesting")]
-
-    urllib2.install_opener(opener)
-
-    url = patch_url
+    opener.addheaders = [("User-agent", "XenTesting")] 
+    #Citrix Auth url
     returnurl = "https://www.citrix.com/login/bridge?url=http%3A%2F%2Fsupport.citrix.com%2F"
     errorurl = "https://www.citrix.com/login?url=http%3A%2F%2Fsupport.citrix.com%2F&err=y"
-    file_name = url.split("/")[-1]
-    file_name = re.match(r'^.*?\.zip', file_name).group(0)
     authentication_url = "https://identity.citrix.com/Utility/STS/Sign-In"
     
     username = raw_input("Citrix Login: ")
@@ -289,10 +284,30 @@ def download_patch(patch_url):
         "userName": username,
         "password": password
         }
-        
     data = urllib.urlencode(payload)
+     # Build our Request object (supplying 'data' makes it a POST)
+    req = urllib2.Request(citrix_authentication_url, data)
+    try:
+        u = urllib2.urlopen(req)
+	contents = u.read()
+    except Exception, err:
+        print("...ERR: Failed to Login!")
+        print("Error: " + str(err))
+	sys.exit(3)
+	
 
-    req = urllib2.Request(authentication_url, data)
+def download_patch(patch_url):
+    
+
+    urllib2.install_opener(opener)
+
+    url = patch_url
+    
+    file_name = url.split("/")[-1]
+    file_name = re.match(r'^.*?\.zip', file_name).group(0)
+    
+        
+    
     
     print("")
     print("Downloading: " + str(file_name))
@@ -934,6 +949,10 @@ if not out == "":
     
 # Now we're finally ready to actually start the patching!
 print("Starting patching...")
+
+# Citrix authentification
+login()
+
 # For each patch, run the apply_patch() function.
 for a in L:
    uuid = str(a['uuid'])
