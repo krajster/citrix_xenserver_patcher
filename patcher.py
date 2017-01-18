@@ -195,7 +195,7 @@ for o, a in myopts:
         clean = False
     elif o == '-D':
 	debug = True
-    elif -o == '-U":
+    elif -o == '-U':
 	CitrixLogin = True 	
     else:
         usage()
