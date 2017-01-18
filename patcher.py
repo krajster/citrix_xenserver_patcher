@@ -110,7 +110,7 @@ clean = True
 ### USAGE + ARGUMENT HANDLING START ###
 #######################################
 ## Define usage text
-def usage():
+def usage(exval=1):
     print("Usage: %s [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-U] [-C] [-v]" % sys.argv[0])
     print("")
     print("-p                          => POOL MODE: Apply Patches to the whole Pool. It must be done on the Pool Master.")
@@ -123,12 +123,13 @@ def usage():
     print("-U                          => Enable Citrix login")
     print("-C                          => *Disable* the automatic cleaning of patches on success.")
     print("-v                          => Display Version and Exit.")
-    sys.exit(1)
+    print("-h                          => Display this message and Exit.")
+    sys.exit(exval)
 
 
 # Parse Args:
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrDC")
+    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrUPDC")
 except getopt.GetoptError:
     usage()
 
