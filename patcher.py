@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Citrix XenServer Patcher
 version = "1.6.0"
