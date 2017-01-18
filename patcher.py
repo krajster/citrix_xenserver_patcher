@@ -111,7 +111,7 @@ clean = True
 #######################################
 ## Define usage text
 def usage():
-    print("Usage: %s [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-C] [-v]" % sys.argv[0])
+    print("Usage: %s [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-U] [-C] [-v]" % sys.argv[0])
     print("")
     print("-p                          => POOL MODE: Apply Patches to the whole Pool. It must be done on the Pool Master.")
     print("-e /path/to/exclude_file    => Allows user to define a Python List of Patches NOT to install.")
@@ -120,6 +120,7 @@ def usage():
     print("-r                          => Enables automatic reboot of Host on completion of patching without prompts.")
     print("-l                          => Just list available patches, and Exit. Cannot be used with '-a' or '-r'.")
     print("-D                          => Enable DEBUG output")
+    print("-U                          => Enable Citrix login")
     print("-C                          => *Disable* the automatic cleaning of patches on success.")
     print("-v                          => Display Version and Exit.")
     sys.exit(1)
@@ -193,7 +194,9 @@ for o, a in myopts:
     elif o == '-C':
         clean = False
     elif o == '-D':
-	    debug = True
+	debug = True
+    elif -o == '-U":
+	CitrixLogin = True 	
     else:
         usage()
 #####################################
@@ -944,7 +947,8 @@ if not out == "":
 print("Starting patching...")
 
 # Citrix authentification
-login()
+if CitrixLogin == True:
+   login()
 
 # For each patch, run the apply_patch() function.
 for a in L:
