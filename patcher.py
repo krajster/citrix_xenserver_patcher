@@ -268,7 +268,9 @@ def which(program):
 def login():
     cj = cookielib.CookieJar()
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj)) 
-    opener.addheaders = [("User-agent", "XenTesting")] 
+    opener.addheaders = [("User-agent", "XenTesting")]	 
+    urllib2.install_opener(opener)
+    
     #Citrix Auth url
     returnurl = "https://www.citrix.com/login/bridge?url=http%3A%2F%2Fsupport.citrix.com%2F"
     errorurl = "https://www.citrix.com/login?url=http%3A%2F%2Fsupport.citrix.com%2F&err=y"
@@ -298,17 +300,9 @@ def login():
 	
 
 def download_patch(patch_url):
-    
-
-    urllib2.install_opener(opener)
-
     url = patch_url
-    
     file_name = url.split("/")[-1]
     file_name = re.match(r'^.*?\.zip', file_name).group(0)
-    
-        
-    
     
     print("")
     print("Downloading: " + str(file_name))
