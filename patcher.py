@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Citrix XenServer Patcher
-version = "1.5.2"
+version = "1.6.0"
 # -- Designed to automatically review available patches from Citrix's XML API,
 #    compare with already installed patches, and apply as necessary- prompting the user
 #    to reboot/restart the XE ToolStack if necessary.
@@ -9,6 +9,7 @@ version = "1.5.2"
 # Written by: Darren Gibbard
 # URL:        http://dgunix.com
 # Github:     http://github.com/dalgibbard/citrix_xenserver_patcher
+# Citrix authorization : https://github.com/bkci
 #
 #
 # Written for Python 2.4 which is present in current XenServer 6.1/6.2+ Builds, but also somewhat
@@ -27,7 +28,7 @@ version = "1.5.2"
 ############################
 ### IMPORT MODULES START ###
 ############################
-import sys, re, subprocess, os, getopt, time, pprint, signal
+import sys, re, subprocess, os, getopt, time, pprint, signal, base64, urllib2, cookielib, urllib, getpass
 from xml.dom import minidom
 from operator import itemgetter
 try:
@@ -99,6 +100,8 @@ autoExclude = True
 reboot = 0
 # Disable debug by default
 debug = False
+# Citrix login by deafult
+CitrixLogin = False
 # Clean out installed patches by default
 clean = True
 ######################################
@@ -109,8 +112,8 @@ clean = True
 ### USAGE + ARGUMENT HANDLING START ###
 #######################################
 ## Define usage text
-def usage():
-    print("Usage: %s [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-C] [-v]" % sys.argv[0])
+def usage(exval=1):
+    print("Usage: %s [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-U] [-C] [-v]" % sys.argv[0])
     print("")
     print("-p                          => POOL MODE: Apply Patches to the whole Pool. It must be done on the Pool Master.")
     print("-e /path/to/exclude_file    => Allows user to define a Python List of Patches NOT to install.")
@@ -119,14 +122,16 @@ def usage():
     print("-r                          => Enables automatic reboot of Host on completion of patching without prompts.")
     print("-l                          => Just list available patches, and Exit. Cannot be used with '-a' or '-r'.")
     print("-D                          => Enable DEBUG output")
+    print("-U                          => Enable Citrix login")
     print("-C                          => *Disable* the automatic cleaning of patches on success.")
     print("-v                          => Display Version and Exit.")
-    sys.exit(1)
+    print("-h                          => Display this message and Exit.")
+    sys.exit(exval)
 
 
 # Parse Args:
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrDC")
+    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrUPDC")
 except getopt.GetoptError:
     usage()
 
@@ -192,7 +197,9 @@ for o, a in myopts:
     elif o == '-C':
         clean = False
     elif o == '-D':
-	    debug = True
+	debug = True
+    elif o == '-U':
+	CitrixLogin = True 	
     else:
         usage()
 #####################################
@@ -264,21 +271,57 @@ def which(program):
 
     return None
 
+def login():
+    cj = cookielib.CookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj)) 
+    opener.addheaders = [("User-agent", "XenTesting")]	 
+    urllib2.install_opener(opener)
+    
+    #Citrix Auth url
+    returnurl = "https://www.citrix.com/login/bridge?url=http%3A%2F%2Fsupport.citrix.com%2F"
+    errorurl = "https://www.citrix.com/login?url=http%3A%2F%2Fsupport.citrix.com%2F&err=y"
+    authentication_url = "https://identity.citrix.com/Utility/STS/Sign-In"
+    
+    username = raw_input("Citrix Login: ")
+    password = getpass.getpass("Citrix password:")
+    
+    payload = {
+	"returnURL": returnurl,
+        "errorURL": errorurl,
+	"persistent": "1",
+        "userName": username,
+        "password": password
+        }
+    data = urllib.urlencode(payload)
+    
+    # Build our Request object (supplying 'data' makes it a POST)
+    req = urllib2.Request(authentication_url, data)
+    try:
+        u = urllib2.urlopen(req)
+	contents = u.read()
+    except Exception, err:
+        print("...ERR: Failed to Login!")
+        print("Error: " + str(err))
+	sys.exit(3)
+	
+
 def download_patch(patch_url):
     url = patch_url
-    file_name = url.split('/')[-1]
+    file_name = url.split("/")[-1]
+    file_name = re.match(r'^.*?\.zip', file_name).group(0)
+    
     print("")
     print("Downloading: " + str(file_name))
     try:
-        u = url(url)
+        u = urlopen(url)
     except Exception, err:
         print("...ERR: Failed to Download Patch!")
         print("Error: " + str(err))
         sys.exit(3)
-        
+    
     try:
-        f = open(file_name, 'wb')
-    except IOError:
+        f = open(file_name, "wb")
+    except IOError, err:
         print("Failed to open/write to " + file_name)
         sys.exit(2)
 
@@ -291,10 +334,9 @@ def download_patch(patch_url):
         print("         Will attempt to continue download, with unknown file size")
         time.sleep(4)
 	###############
-        size_ok = False
+    	size_ok = False
 
-    # Check available disk space
-    s = os.statvfs('.')
+    s = os.statvfs(".")
     freebytes = s.f_bsize * s.f_bavail
     if size_ok == False:
         doublesize = 2048
@@ -309,7 +351,7 @@ def download_patch(patch_url):
         sys.exit(20)
 
     print "Download Size: %s Bytes" % (file_size)
-        
+    
     file_size_dl = 0
     block_sz = 8192
     while True:
@@ -464,7 +506,7 @@ def getAutoExcludeList(autourl):
     ### Start XML Grab + Parse
     try:
         # Get XML
-        autoexclude_data = url(autourlfull)
+        autoexclude_data = urlopen(autourlfull)
     except Exception, err:
         if not subver == "":
             print("Failed to locate Auto Exclusions file: XS" + xsver + "_excludes.py" )
@@ -653,7 +695,7 @@ try:
     # Get XML
     if debug == True:
         print("Downloading patch list XML")
-    downloaded_data = url(patchxmlurl)
+    downloaded_data = urlopen(patchxmlurl)
 except Exception, err:
     # Handle Errors
     print("\nFailed to read Citrix Patch List from: " + patchxmlurl)
@@ -906,6 +948,11 @@ if not out == "":
     
 # Now we're finally ready to actually start the patching!
 print("Starting patching...")
+
+# Citrix authentification
+if CitrixLogin == True:
+   login()
+
 # For each patch, run the apply_patch() function.
 for a in L:
    uuid = str(a['uuid'])
