@@ -67,7 +67,7 @@ Example on using this flag:
 * The code supports a few other arguments too:
 
 ```bash
-Usage: ./patcher.py [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-C] [-v]
+Usage: ./patcher.py [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-d] [-U] [-C] [-v]
 
 -p                          => POOL MODE: Apply Patches to the whole Pool. It must be done on the Pool Master.
 -e /path/to/exclude_file    => Allows user to define a Python List of Patches NOT to install.
@@ -75,8 +75,10 @@ Usage: ./patcher.py [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-C
 -a                          => Enables auto-apply of patches - will NOT reboot host without below option.
 -r                          => Enables automatic reboot of Host on completion of patching without prompts.
 -l                          => Just list available patches, and Exit. Cannot be used with '-a' or '-r'.
--D                          => Enable DEBUG output
--C                          => *Disable* the automatic cleaning of patches on success.
+-D                          => Enable DEBUG output.
+-d                          => Only download patch.
+-C                          => Disable the automatic cleaning of patches on success.
+-U                          => Enable Citrix login.
 -v                          => Display Version and Exit.
 ```
 
