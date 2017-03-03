@@ -113,7 +113,7 @@ clean = True
 #######################################
 ## Define usage text
 def usage(exval=1):
-    print("Usage: %s [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-U] [-C] [-v]" % sys.argv[0])
+    print("Usage: %s [-p] [-e /path/to/exclude_file] [-E] [-a] [-r] [-l] [-D] [-d] [-U] [-C] [-v]" % sys.argv[0])
     print("")
     print("-p                          => POOL MODE: Apply Patches to the whole Pool. It must be done on the Pool Master.")
     print("-e /path/to/exclude_file    => Allows user to define a Python List of Patches NOT to install.")
@@ -122,6 +122,7 @@ def usage(exval=1):
     print("-r                          => Enables automatic reboot of Host on completion of patching without prompts.")
     print("-l                          => Just list available patches, and Exit. Cannot be used with '-a' or '-r'.")
     print("-D                          => Enable DEBUG output")
+    print("-d                          => Only download patch")
     print("-U                          => Enable Citrix login")
     print("-C                          => *Disable* the automatic cleaning of patches on success.")
     print("-v                          => Display Version and Exit.")
@@ -199,7 +200,9 @@ for o, a in myopts:
     elif o == '-D':
 	debug = True
     elif o == '-U':
-	CitrixLogin = True 	
+	CitrixLogin = True
+    elif o == '-d':
+        Download_Patch_Local = True
     else:
         usage()
 #####################################
@@ -896,6 +899,15 @@ print(vara)
 # If the user just wanted a list, quit now.
 if listonly == True:
     sys.exit(0)
+
+# If the user just wanted a download patch.
+if Download_Patch_Local == True:
+    print("Download patch in current folder.") 
+    for a in L:
+        uuid = str(a['uuid'])
+        patch_url = str(a['patch_url'])
+        download_patch(patch_url)
+    sys.exit(0)	
 
 # If any of the patches in the list recommend a reboot after applying, increment the reboot var.
 for a in L:
