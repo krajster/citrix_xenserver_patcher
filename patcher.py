@@ -132,7 +132,7 @@ def usage(exval=1):
 
 # Parse Args:
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrUPDdC")
+    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrdUPDC")
 except getopt.GetoptError:
     usage()
 
