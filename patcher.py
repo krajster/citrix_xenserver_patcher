@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Citrix XenServer Patcher
-version = "1.6.0"
+version = "1.6.1"
 # -- Designed to automatically review available patches from Citrix's XML API,
 #    compare with already installed patches, and apply as necessary- prompting the user
 #    to reboot/restart the XE ToolStack if necessary.
@@ -132,7 +132,7 @@ def usage(exval=1):
 
 # Parse Args:
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrUPDC")
+    myopts, args = getopt.getopt(sys.argv[1:],"vpe:EalrUPDdC")
 except getopt.GetoptError:
     usage()
 
