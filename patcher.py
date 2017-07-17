@@ -104,6 +104,9 @@ debug = False
 CitrixLogin = False
 # Clean out installed patches by default
 clean = True
+# Download patch default false
+Download_Patch_Local = False
+
 ######################################
 ### SYSTEM / INITIAL VARIABLES END ###
 ######################################
