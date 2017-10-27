@@ -313,9 +313,16 @@ def login():
 
 def download_patch(patch_url):
     url = patch_url
-    file_name = url.split("/")[-1]
-    file_name = re.match(r'^.*?\.zip', file_name).group(0)
-    
+    file_name = url.split('/')[-1].split('&')[0]
+    if reuse_download:
+        file_name = '.'.join(file_name.split('.')[0:-1])+".iso"
+        if os.path.isfile(file_name):
+            return file_name
+        file_name = '.'.join(file_name.split('.')[0:-1])+".xsupdate"
+        if os.path.isfile(file_name):
+            return file_name
+        file_name = url.split('/')[-1].split('&')[0]
+
     print("")
     print("Downloading: " + str(file_name))
     try:
@@ -380,35 +387,41 @@ def download_patch(patch_url):
 
 def apply_patch(name_label, uuid, file_name, host_uuid):
     print("\nApplying: " + str(name_label))
-    print("Uncompressing...")
-    patch_unzip_cmd = str("unzip -u ") + str(file_name)
-    ### Ready for patch extract
-    out = None
-    err = None
-    do_patch_unzip = subprocess.Popen([patch_unzip_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    (out, err) = do_patch_unzip.communicate()
-    if (err and out != None ):
-        print("Error extracting compressed patchfile: " + str(file_name))
-    if clean == True:
-        os.remove(file_name)
-    uncompfile = str(name_label) + str(".xsupdate")
+    if file_name.endswith(".zip"):
+        print("Uncompressing...")
+        patch_unzip_cmd = str("unzip -u ") + str(file_name)
+        ### Ready for patch extract
+        out = None
+        err = None
+        do_patch_unzip = subprocess.Popen([patch_unzip_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        (out, err) = do_patch_unzip.communicate()
+        if (err and out != None ):
+            print("Error extracting compressed patchfile: " + str(file_name))
+        if clean == True:
+            os.remove(file_name)
     # Check {name_label}.xsupdate exists
-    if not os.path.isfile(uncompfile):
-        print("Failed to locate unzipped patchfile: " + str(uncompfile))
+    if os.path.isfile(str(name_label) + str(".xsupdate")):
+        uncompfile = str(name_label) + str(".xsupdate")
+    elif os.path.isfile(str(name_label) + str(".iso")):
+        uncompfile = str(name_label) + str(".iso")
+    else:
+        print("Failed to locate unzipped " + str(name_label) + (".xsupdate or ") + str(name_label) + (".iso patchfile(s)"))
         sys.exit(16)
+    print("Found unzipped patchfile: " + str(uncompfile))
+
     # Internal upload to XS patcher
     print("Internal Upload...")
-    patch_upload_cmd = str(xecli) + str(" patch-upload file-name=") + str(uncompfile)
+    patch_upload_cmd = str(xecli) + str(" ") + upload_cmd + (" file-name=") + str(uncompfile)
     do_patch_upload = subprocess.Popen([patch_upload_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     # On Python 2.4 check_* functions have not been yet implemented. Lets wait until Popen completes and read out the return code
     do_patch_upload.wait()
     (out, err) = do_patch_upload.communicate()
-    # Upload may fail if file has previously already been uploaded but not applied
     if (err):
         print("XE Error detected: " + err)
         print("Return code is: " + str(do_patch_upload.returncode))
         error_block = err.split('\n')
-        if (do_patch_upload.returncode == 1 and error_block[0] == "The uploaded patch file already exists"):
+        ## This matches cases where upload has already happened.
+        if (do_patch_upload.returncode == 1 and ( (error_block[0] == "The uploaded patch file already exists") or (error_block[0] == "The uploaded update already exists") )):
             print("Patch previously uploaded, attempting to reapply " + str(uuid))
         else:        
             print("New error detected, aborting")
@@ -419,7 +432,7 @@ def apply_patch(name_label, uuid, file_name, host_uuid):
         err = None
         patch_upload_uuid = None
         #Do not pass hostuuid here as the patch has not been applied yet and the patch-list for SRO will come back empty
-        patch_upload_verify_cmd = str(xecli) + str(' patch-list params=uuid uuid=') + str(uuid) + str(" --minimal")
+        patch_upload_verify_cmd = str(xecli) + str(' ') + list_cmd + (' params=uuid uuid=') + str(uuid) + str(" --minimal")
         do_patch_upload_verify = subprocess.Popen([patch_upload_verify_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (out, err) = do_patch_upload_verify.communicate()
     
@@ -427,23 +440,23 @@ def apply_patch(name_label, uuid, file_name, host_uuid):
             print("Failed to validate the uploaded patch: " + str(uncompfile) + "\nError: " + str(err))
             sys.exit(17)
         else:
-            print("Completed: " + str(out))
+            print("Upload Successful: " + str(out))
 
         patch_upload_uuid_utf8 = out.decode("utf8")
         patch_upload_uuid = str(patch_upload_uuid_utf8.replace('\n', ''))
         patch_upload_uuid.rstrip('\r\n')
-        if not ( patch_upload_uuid != None and patch_upload_uuid == uuid ):
-            print("Patch internal upload failed for: " + str(uncompfile))
-            print("patch_upload_uuid = " + str(patch_upload_uuid))
-            print("uuid = " + str(uuid))
-            print("out = " + str(out))
-            sys.exit(16)
+	if not ( patch_upload_uuid != None and patch_upload_uuid == uuid ):
+	    print("Patch internal upload failed for: " + str(uncompfile))
+	    print("patch_upload_uuid = " + str(patch_upload_uuid))
+	    print("uuid = " + str(uuid))
+	    print("out = " + str(out))
+	    sys.exit(16)
 
     print("Applying Patch " + str(uuid))
     if pool == True:
-        patch_apply_cmd = str(xecli) + str(" patch-pool-apply uuid=") + str(uuid)
+        patch_apply_cmd = str(xecli) + str(" ") + pool_apply_cmd + (" uuid=") + str(uuid)
     else:
-        patch_apply_cmd = str(xecli) + str(" patch-apply uuid=") + str(uuid) + str(" host-uuid=") + str(host_uuid)
+        patch_apply_cmd = str(xecli) + str(" ") + apply_cmd + host_uuid + (" uuid=") + str(uuid)
     if debug == True:
         print(str(patch_apply_cmd))
     do_patch_apply = subprocess.Popen([patch_apply_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -457,9 +470,9 @@ def apply_patch(name_label, uuid, file_name, host_uuid):
     out = None
     err = None
     if pool == True:
-        patch_apply_verify_cmd = str(xecli) + str(' patch-list ') + str(' params=uuid uuid=') + str(uuid) + str(" --minimal")
+        patch_apply_verify_cmd = str(xecli) + str(' ') + list_cmd + str(' params=uuid uuid=') + str(uuid) + str(" --minimal")
     else:
-        patch_apply_verify_cmd = str(xecli) + str(' patch-list hosts:contains="') + str(host_uuid) + str('" params=uuid uuid=') + str(uuid) + str(" --minimal")
+        patch_apply_verify_cmd = str(xecli) + str(' ') + list_cmd + (' hosts:contains="') + str(host_uuid) + str('" params=uuid uuid=') + str(uuid) + str(" --minimal")
 
     do_patch_apply_verify = subprocess.Popen([patch_apply_verify_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (out, err) = do_patch_apply_verify.communicate()
@@ -471,28 +484,36 @@ def apply_patch(name_label, uuid, file_name, host_uuid):
     if not ( patch_apply_uuid != None and patch_apply_uuid == uuid ):
         print("Patch apply failed for: " + str(uncompfile))
         sys.exit(19)
-        
+    print("Patch Successful: " + str(uncompfile))
+
     ## Cleanup
     if clean == True:
-        if debug == True:
-            print("Deleting file: " + uncompfile)
-        try:
-            os.remove(uncompfile)
-        except OSError:
-            print("Couldn't find file: " + uncompfile + " - Won't remove it.")
-                    
+        print("Running post-patch cleanup...")
+        if not reuse_download == True:
+            if debug == True:
+                print("Deleting file: " + uncompfile)
+            try:
+                os.remove(uncompfile)
+                print("Removed file: " + uncompfile)
+            except OSError:
+                pass
+
         srcpkg_name = name_label + "-src-pkgs.tar.bz2"
         if debug == True:
             print("Deleting file: " + srcpkg_name)
         try:
             os.remove(srcpkg_name)
+            print("Removed file: " + srcpkg_name)
         except OSError:
-            print("Couldn't find file: " + srcpkg_name + " - Won't remove it.")
+            pass
 
         # Cleanup the /var/patch/ stuff using the XE Cli
         out = None
         err = None
-        clean_var_cmd = str(xecli) + str(' patch-clean uuid=' + uuid)
+        if pool or isopatch:
+            clean_var_cmd = str(xecli) + str(' ') + pool_clean + (' uuid=' + uuid)
+        else:
+            clean_var_cmd = str(xecli) + str(' patch-clean uuid=' + uuid)
         clean_var = subprocess.Popen([clean_var_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         if debug == True:
             print("Running clean for Patch UUID " + uuid)
@@ -503,7 +524,7 @@ def apply_patch(name_label, uuid, file_name, host_uuid):
             print("Error encountered cleaning patch data for UUID: " + uuid)
             print("Error was: " + err + "\n")
 
-    
+
 ## Function to pull Auto-Excludes file    
 def getAutoExcludeList(autourl):
     # Build the full file URL:
@@ -695,6 +716,23 @@ if not xetest():
         print("XE restarted and responding OK.")
 elif debug == True:
     print("XE working OK")
+
+# Setup upload/apply commands based on OS Version.
+# If version > 7.1 UUID format changed for ISO patching to replace 2nd and 3rd segments with zeros post-upload.
+if (int(majver) > 7) or ((int(majver) == 7) and (int(minver) >= 1 )):
+    isopatch = True
+    list_cmd="update-list"
+    upload_cmd="update-upload"
+    apply_cmd="update-apply host="
+    pool_apply_cmd="update-pool-apply"
+    pool_clean="update-pool-clean"
+else:
+    isopatch = False
+    list_cmd="patch-list"
+    upload_cmd="patch-upload"
+    apply_cmd="patch-apply host-uuid="
+    pool_apply_cmd="patch-pool-apply"
+    pool_clean="patch-pool-clean"
     
 ### Start XML Grab + Parse
 try:
