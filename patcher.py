@@ -862,9 +862,9 @@ inst_patch_list = []
 out = None
 err = None
 if pool == True:
-    get_inst_patch_cmd = str(xecli) + str(' patch-list ') + str(' --minimal')
+    get_inst_patch_cmd = str(xecli) + str(' ') + list_cmd + str(' --minimal')
 else:
-    get_inst_patch_cmd = str(xecli) + str(' patch-list hosts:contains="') + str(HOSTUUID) + str('" --minimal')
+    get_inst_patch_cmd = str(xecli) + str(' ') + list_cmd + (' hosts:contains="') + str(HOSTUUID) + str('" --minimal')
 get_inst_patch = subprocess.Popen([get_inst_patch_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 if debug == True:
     print("Get patch list using: " + get_inst_patch_cmd)
@@ -875,7 +875,7 @@ if not err and out != None:
     inst_patch_list = inst_patch_str.split(",")
 else:
     print("Failed to get Patch List from XE")
-    sys.exit(9)
+sys.exit(9)
 
 #############
 ### DEBUG ###
