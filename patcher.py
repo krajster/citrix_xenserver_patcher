@@ -794,9 +794,10 @@ for s in xmlpatches:
         patchname = s.attributes['name-label'].value
     except KeyError:
         continue
-    vermatch = "XS" + xsverstr
-    if xsver == "711":
-    vermatch = "XS71ECU"
+    if xsverstr == "711":
+        vermatch = "XS71ECU"
+    else:
+        vermatch = "XS" + xsverstr
     if re.match(vermatch, patchname):
         # Set the name-label (Patch Filename)
         name_label = str(s.attributes['name-label'].value)
