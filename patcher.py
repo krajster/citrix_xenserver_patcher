@@ -106,6 +106,7 @@ CitrixLogin = False
 clean = True
 # Download patch default false
 Download_Patch_Local = False
+reuse_download = True
 
 ######################################
 ### SYSTEM / INITIAL VARIABLES END ###
