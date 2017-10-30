@@ -883,7 +883,7 @@ if HOSTUUID == "" or HOSTUUID == ['']:
 # Trap if the HostUUID is still null
 if HOSTUUID == "" or HOSTUUID == ['']:
     print("Error: Failed to obtain HOSTUUID from XE CLI")
-sys.exit(10)
+    sys.exit(10)
 
 # Setup empty list to use in a moment:
 inst_patch_list = []
@@ -904,7 +904,7 @@ if not err and out != None:
     inst_patch_list = inst_patch_str.split(",")
 else:
     print("Failed to get Patch List from XE")
-sys.exit(9)
+    sys.exit(9)
 
 #############
 ### DEBUG ###
