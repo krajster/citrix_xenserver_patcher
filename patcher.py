@@ -642,6 +642,10 @@ relver = '/etc/xensource-inventory'
 xs = False
 xsver = None
 
+# Citrix authentification
+if CitrixLogin == True:
+   login()
+
 # Open Filehandle to relver to check version
 try:
     f = open(relver, "r")
@@ -1034,10 +1038,6 @@ if not out == "":
     
 # Now we're finally ready to actually start the patching!
 print("Starting patching...")
-
-# Citrix authentification
-if CitrixLogin == True:
-   login()
 
 # For each patch, run the apply_patch() function.
 for a in L:
